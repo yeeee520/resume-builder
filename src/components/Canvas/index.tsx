@@ -121,23 +121,23 @@ function FreeBlock({ block }: { block: Block }) {
         <BlockDisplay block={block} />
       </div>
 
-      {/* Resize handles - 仅自由模式选中时显示 */}
-      {isFree && isSelected && (
+      {/* Resize handles - 仅自由模式选中时且不拖拽中显示 */}
+      {isFree && isSelected && !isDragging && (
         <>
           {['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map(dir => (
             <div
               key={dir}
-              className="absolute bg-[var(--accent)] rounded-full"
+              className="absolute bg-[var(--accent)] rounded-full opacity-80 hover:opacity-100"
               style={{
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 cursor: `${dir}-resize`,
-                ...(dir.includes('n') ? { top: -4 } : {}),
-                ...(dir.includes('s') ? { bottom: -4 } : {}),
-                ...(dir.includes('w') ? { left: -4 } : {}),
-                ...(dir.includes('e') ? { right: -4 } : {}),
-                ...(dir === 'n' || dir === 's' ? { left: 'calc(50% - 4px)' } : {}),
-                ...(dir === 'e' || dir === 'w' ? { top: 'calc(50% - 4px)' } : {}),
+                ...(dir.includes('n') ? { top: -3 } : {}),
+                ...(dir.includes('s') ? { bottom: -3 } : {}),
+                ...(dir.includes('w') ? { left: -3 } : {}),
+                ...(dir.includes('e') ? { right: -3 } : {}),
+                ...(dir === 'n' || dir === 's' ? { left: 'calc(50% - 3px)' } : {}),
+                ...(dir === 'e' || dir === 'w' ? { top: 'calc(50% - 3px)' } : {}),
               }}
               onMouseDown={(e) => handleResizeStart(e, dir)}
             />
