@@ -106,46 +106,59 @@ export async function analyzeResumeImage(
   const data = await response.json()
   const content = data.choices?.[0]?.message?.content || ''
 
-  // Kimi 可能在 JSON 中混入了其他文字，需要精确提取
-  let extracted = content
+  console.log('Kimi raw response:', content)
 
-  // 尝试匹配 ```json ... ``` 代码块
-  const codeBlock = content.match(/```json\s*([\s\S]*?)\s*```/)
+  // 从返回文本中提取对象/数组部分
+  let extracted = content.trim()
+
+  // 尝试提取 ```json ... ``` 代码块
+  const codeBlock = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
   if (codeBlock) {
-    extracted = codeBlock[1]
+    extracted = codeBlock[1].trim()
   } else {
-    // 尝试匹配 { 开头的完整 JSON（贪心匹配）
-    const objMatch = content.match(/\{[\s\S]*\}/)
-    if (objMatch) {
-      extracted = objMatch[0]
+    // 提取第一个 { 或 [ 开始的内容
+    const startIdx = Math.min(
+      extracted.indexOf('{') >= 0 ? extracted.indexOf('{') : Infinity,
+      extracted.indexOf('[') >= 0 ? extracted.indexOf('[') : Infinity,
+    )
+    if (startIdx < Infinity) {
+      extracted = extracted.slice(startIdx)
     }
   }
 
-  // 修复常见的 JSON 问题
-  extracted = extracted
-    .replace(/,\s*\}/g, '}')           // 移除尾部逗号
-    .replace(/,\s*\]/g, ']')           // 移除数组尾部逗号
-    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":') // 属性名加引号
-    .replace(/:\s*'([^']*)'/g, ': "$1"') // 单引号值 → 双引号
-    .replace(/\n/g, ' ')              // 换行替换空格
-    .replace(/\t/g, ' ')              // 制表符替换空格
+  // 去掉末尾多余的文本（} 或 ] 之后）
+  const lastBrace = extracted.lastIndexOf('}')
+  const lastBracket = extracted.lastIndexOf(']')
+  const endIdx = Math.max(lastBrace, lastBracket)
+  if (endIdx > 0) {
+    extracted = extracted.slice(0, endIdx + 1)
+  }
 
+  // 核心策略：用 JS new Function 解析（容忍无引号key、单引号、尾部逗号）
   let parsed: any
   try {
+    // 先尝试标准 JSON.parse
     parsed = JSON.parse(extracted)
   } catch {
-    // 第二次尝试：更激进地修复
-    // Kimi 有时在 blocks 数组里的 object key 不加引号
-    const blocksMatch = content.match(/"blocks"\s*:\s*\[([\s\S]*?)\]\s*\}/)
-    if (blocksMatch) {
-      // 手动重建
-      parsed = { blocks: [] }
-      // 尝试逐行提取
-    }
-
-    if (!parsed) {
-      console.error('Kimi raw response:', content)
-      throw new Error('AI 返回的格式无法解析，请重试。原始响应: ' + content.substring(0, 300))
+    try {
+      // 用 JS 对象字面量方式解析（更宽容）
+      parsed = new Function(`return (${extracted})`)()
+    } catch (e2) {
+      // 最后一招：修复常见问题后重试
+      let fixed = extracted
+        .replace(/,\s*([}\]])/g, '$1')          // 去尾部逗号
+        .replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":') // 无引号key加引号
+        .replace(/'/g, '"')                      // 单引号→双引号
+      try {
+        parsed = JSON.parse(fixed)
+      } catch (e3) {
+        console.error('Kimi parse failed. Raw:', content)
+        console.error('Extracted:', extracted)
+        console.error('Fixed:', fixed)
+        throw new Error(
+          `AI 返回格式解析失败。原始回复: ${content.substring(0, 250)}...`
+        )
+      }
     }
   }
   const blocks: VisionBlockResult[] = (parsed.blocks || []).map((b: any, i: number) => ({
