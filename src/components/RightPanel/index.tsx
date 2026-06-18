@@ -20,6 +20,7 @@ export function RightPanel() {
   })
   const removeBlock = useResumeStore(s => s.removeBlock)
   const duplicateBlock = useResumeStore(s => s.duplicateBlock)
+  const updateBlock = useResumeStore(s => s.updateBlock)
   const selectBlock = useEditorStore(s => s.selectBlock)
 
   function handleDuplicate() {
@@ -56,6 +57,45 @@ export function RightPanel() {
         {!block && (
           <div className="flex items-center justify-center py-16 text-sm text-neutral-400 px-6 text-center">
             点击画布中的拼图块<br />进行内容和样式编辑
+          </div>
+        )}
+
+        {/* v2: 自由布局位置与尺寸编辑 */}
+        {block && (
+          <div className="p-3 border-b border-[var(--border-color)] bg-neutral-50/50 space-y-2">
+            <p className="text-[11px] text-neutral-500 uppercase tracking-wider font-medium">📐 位置与尺寸</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-neutral-400">X</label>
+                <input type="number" value={Math.round(block.x || 0)}
+                  onChange={e => updateBlock(block.id, { x: Number(e.target.value) } as any)}
+                  className="w-full text-[11px] px-2 py-1 rounded border border-[var(--border-color)] bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] text-neutral-400">Y</label>
+                <input type="number" value={Math.round(block.y || 0)}
+                  onChange={e => updateBlock(block.id, { y: Number(e.target.value) } as any)}
+                  className="w-full text-[11px] px-2 py-1 rounded border border-[var(--border-color)] bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] text-neutral-400">宽 (0=auto)</label>
+                <input type="number" value={Math.round(block.width || 0)}
+                  onChange={e => updateBlock(block.id, { width: Number(e.target.value) } as any)}
+                  className="w-full text-[11px] px-2 py-1 rounded border border-[var(--border-color)] bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] text-neutral-400">高 (0=auto)</label>
+                <input type="number" value={Math.round(block.height || 0)}
+                  onChange={e => updateBlock(block.id, { height: Number(e.target.value) } as any)}
+                  className="w-full text-[11px] px-2 py-1 rounded border border-[var(--border-color)] bg-white" />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] text-neutral-400">层级</label>
+              <input type="number" value={block.zIndex || 0}
+                onChange={e => updateBlock(block.id, { zIndex: Number(e.target.value) } as any)}
+                className="w-full text-[11px] px-2 py-1 rounded border border-[var(--border-color)] bg-white" />
+            </div>
           </div>
         )}
 

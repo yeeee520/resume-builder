@@ -184,7 +184,6 @@ export interface Resume {
   themeId: string
   layoutMode: LayoutMode  // v2
 }
-}
 
 // ==================== 主题 ====================
 
