@@ -43,38 +43,42 @@ export async function analyzeResumeImage(
       messages: [
         {
           role: 'system',
-          content: `你是一个专业的简历文档分析助手。你的任务是分析简历图片，识别并分割出其中的各个内容区块。
+          content: `你是一个专业的简历文档分析助手。任务是分析简历图片，分割出各个内容区块。
 
-请以JSON格式返回分析结果，格式如下：
+**严格要求**：你必须返回一个严格符合JSON规范的格式。属性名和字符串值必须用双引号。
+不要在对象末尾加逗号。不要用单引号。
+
+格式示例：
 {
   "blocks": [
     {
-      "x": 区块左上角x坐标(像素),
-      "y": 区块左上角y坐标(像素),
-      "width": 区块宽度(像素),
-      "height": 区块高度(像素),
-      "type": 区块类型,
-      "content": "区块内的文字内容",
-      "confidence": 置信度(0-1)
+      "x": 40,
+      "y": 60,
+      "width": 150,
+      "height": 46,
+      "type": "title",
+      "content": "张三",
+      "confidence": 1
     }
   ]
 }
 
-区块类型(type)必须是以下之一:
+区块类型(type)必须为以下之一:
 - "title": 姓名/大标题
-- "paragraph": 正文/个人总结/描述文字
-- "timeline": 教育经历/工作经历(含日期)
+- "paragraph": 正文/个人总结/描述
+- "timeline": 教育经历/工作经历
 - "skill-bar": 技能条/技能+百分比
 - "tag-group": 标签组/技能词列表
-- "contact": 联系方式(电话/邮箱/地址/GitHub)
+- "contact": 联系方式
 - "divider": 分割线
-- "avatar": 头像/照片
+- "avatar": 头像
 
 注意:
-1. 请尽量精确地标注每个区块的像素坐标
+1. 精确标注像素坐标
 2. 图片尺寸为 ${imgWidth}x${imgHeight}px
-3. 只返回JSON,不要有其他文字说明
-4. 将相邻且语义相同的内容合并为一个区块`,
+3. **只返回JSON,不要任何其他文字或解释**
+4. **JSON必须是严格的RFC标准: 双引号、无尾部逗号**
+5. 合并相邻的同类内容`,
         },
         {
           role: 'user',
