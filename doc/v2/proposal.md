@@ -6,13 +6,11 @@
 - Kimi Vision AI 导入 PDF
 - PDF 导出 oklch 修复
 
-## ⚠️ 已知问题
-- Kimi JSON 输出不稳定，已加入多级解析容错，但仍可能失败
-- 导入后可进一步优化坐标映射精度
-
-## 🔜 后续优化方向
-- 回退到 main 分支: `git checkout main`
-- 删除 v2 分支: `git branch -D v2-free-layout`
+## ✅ 已修复
+- 自由布局 Block 宽度为0导致不可见 → 默认 220px
+- PDF 导入 Kimi JSON 解析容错
+- API Key 界面化输入
+- PDF 导出 oklch 修复
 
 v1.x 是一个「垂直流式」布局：所有拼图块从上到下排列，通过 @dnd-kit/sortable 排序。
 核心局限：块只能是一行宽的条状，无法自由拖拽调整位置和大小。
