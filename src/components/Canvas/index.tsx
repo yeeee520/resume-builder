@@ -34,10 +34,10 @@ function FreeBlock({ block }: { block: Block }) {
         position: 'absolute',
         left: block.x,
         top: block.y,
-        width: block.width > 0 ? block.width : undefined,
-        height: block.height > 0 ? block.height : undefined,
-        minWidth: 40,
-        minHeight: 20,
+        width: block.width > 0 ? block.width : 220,  // 默认 220px 宽
+        height: block.height > 0 ? block.height : undefined, // auto 高度
+        minWidth: 80,
+        minHeight: 24,
         zIndex: isDragging ? 100 : (block.zIndex || 1),
         boxShadow: isSelected ? 'var(--shadow-sm)' : undefined,
       }
@@ -96,13 +96,20 @@ function FreeBlock({ block }: { block: Block }) {
     window.addEventListener('mouseup', onUp)
   }
 
+  // 合并 style，加默认背景色
+  const mergedStyle = {
+    ...style,
+    backgroundColor: 'transparent',
+    wordBreak: 'break-word' as const,
+  }
+
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={mergedStyle}
       {...(isFree ? { ...attributes, ...listeners } : { ...attributes, ...listeners })}
       data-block-id={block.id}
-      className={`group relative transition-shadow duration-150 cursor-grab active:cursor-grabbing rounded-sm border-2 ${
+      className={`group relative transition-shadow duration-150 cursor-grab active:cursor-grabbing rounded-sm border-2 overflow-hidden ${
         isSelected ? 'border-[var(--accent)]' : 'border-transparent hover:border-neutral-200'
       } ${isFree ? '' : 'mb-1'}`}
       onClick={(e) => {
