@@ -45,23 +45,17 @@ export async function analyzeResumeImage(
           role: 'system',
           content: `你是一个专业的简历文档分析助手。任务是分析简历图片，分割出各个内容区块。
 
-**严格要求**：你必须返回一个严格符合JSON规范的格式。属性名和字符串值必须用双引号。
-不要在对象末尾加逗号。不要用单引号。
+你必须返回如下所示的 JSON 对象（不要任何其他文字，不要代码块，只返回纯 JSON）：
 
-格式示例：
-{
-  "blocks": [
-    {
-      "x": 40,
-      "y": 60,
-      "width": 150,
-      "height": 46,
-      "type": "title",
-      "content": "张三",
-      "confidence": 1
-    }
-  ]
-}
+{"blocks":[{"x":40,"y":60,"width":150,"height":46,"type":"title","content":"姓名","confidence":1}]}
+
+请严格遵守以下规则：
+1. 所有属性名和字符串值必须使用双引号
+2. 不要在最后一项后面加逗号
+3. 不要使用单引号
+4. 不要添加任何解释文字或 markdown 标记
+5. 只返回一个 JSON 对象，格式为 {"blocks": [...]}
+6. 每个数组元素必须是一个完整的 JSON 对象 { "x": ..., "y": ..., "width": ..., "height": ..., "type": "...", "content": "...", "confidence": ... }
 
 区块类型(type)必须为以下之一:
 - "title": 姓名/大标题
@@ -76,9 +70,7 @@ export async function analyzeResumeImage(
 注意:
 1. 精确标注像素坐标
 2. 图片尺寸为 ${imgWidth}x${imgHeight}px
-3. **只返回JSON,不要任何其他文字或解释**
-4. **JSON必须是严格的RFC标准: 双引号、无尾部逗号**
-5. 合并相邻的同类内容`,
+3. 合并相邻的同类内容`,
         },
         {
           role: 'user',
