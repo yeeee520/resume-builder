@@ -157,8 +157,28 @@ export async function analyzeResumeImage(
         try {
           parsed = JSON.parse(fixed)
         } catch (_e4) {
-          // 第三次：尝试 new Function（最后手段）
-          parsed = new Function(`return (${extracted})`)()
+          // 第三次：手动从 blocks 数组提取每个对象
+          const blockObjMatches = fixed.match(/\{[^}]+\}/g)
+          if (blockObjMatches) {
+            const blocks = blockObjMatches.map((b: string) => {
+              const obj: Record<string, any> = {}
+              const pairs = b.match(/"(\w+)"\s*:\s*("[^"]*"|[\d.]+)/g)
+              if (pairs) {
+                pairs.forEach((pair: string) => {
+                  const m = pair.match(/"(\w+)"\s*:\s*("[^"]*"|[\d.]+)/)
+                  if (m) {
+                    const val = m[2]
+                    obj[m[1]] = val.startsWith('"') ? val.slice(1, -1) : parseFloat(val)
+                  }
+                })
+              }
+              return obj
+            })
+            parsed = { blocks }
+          }
+          if (!parsed) {
+            parsed = new Function(`return (${extracted})`)()
+          }
         }
       } catch (_fatal) {
         console.error('Kimi parse failed. Raw:', content)
