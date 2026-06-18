@@ -1,12 +1,12 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useImportStore } from '@/store/useImportStore'
 import { toast } from '@/components/shared/Toast'
-
-const KIMI_API_KEY = 'sk-Xfzmqy6VfneqVmp70Ix4DJ7l5Tfqqh4VyA3QFEh4eBbgBe2I'
 
 export function ImportSection() {
   const pdfRef = useRef<HTMLInputElement>(null)
   const docxRef = useRef<HTMLInputElement>(null)
+  const apiKeyRef = useRef<HTMLInputElement>(null)
+  const [showApiInput, setShowApiInput] = useState(false)
   const startParse = useImportStore(s => s.startParse)
   const setReview = useImportStore(s => s.setReview)
   const setError = useImportStore(s => s.setError)
@@ -85,8 +85,14 @@ export function ImportSection() {
     toast('info', `正在让 AI 识别 ${pdf.numPages} 页简历内容...`)
 
     // 调用 Kimi Vision
+    const apiKey = apiKeyRef.current?.value?.trim()
+    if (!apiKey) {
+      toast('error', '请先设置 Kimi API Key（点击下方的设置按钮）')
+      setError('未配置 API Key')
+      return
+    }
     const { analyzeResumePDF } = await import('@/components/Import/kimiClient')
-    const results = await analyzeResumePDF(pageImages, KIMI_API_KEY)
+    const results = await analyzeResumePDF(pageImages, apiKey)
 
     // 将 Vision 结果转为 classifications
     const { convertVisionToClassifications } = await import('@/components/Import/kimiConverter')
@@ -99,6 +105,26 @@ export function ImportSection() {
   return (
     <div className="border-t border-[var(--border-color)] p-3">
       <p className="text-[11px] font-semibold text-neutral-500 mb-2">📥 导入现有简历</p>
+
+      {/* API Key 设置 */}
+      <div className="mb-2">
+        <button
+          onClick={() => setShowApiInput(!showApiInput)}
+          className="text-[10px] text-neutral-400 hover:text-neutral-600 underline"
+        >
+          ⚙️ {showApiInput ? '隐藏' : '设置'} Kimi API Key
+        </button>
+        {showApiInput && (
+          <input
+            ref={apiKeyRef}
+            type="password"
+            placeholder="sk-..."
+            defaultValue="sk-Xfzmqy6VfneqVmp70Ix4DJ7l5Tfqqh4VyA3QFEh4eBbgBe2I"
+            className="w-full text-[10px] mt-1 px-2 py-1 rounded border border-[var(--border-color)] bg-white outline-none focus:border-[var(--accent)]"
+          />
+        )}
+      </div>
+
       <div className="flex flex-col gap-1.5">
         <button
           onClick={handlePDFImport}
