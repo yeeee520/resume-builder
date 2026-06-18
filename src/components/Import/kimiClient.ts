@@ -154,8 +154,21 @@ export async function analyzeResumeImage(
         .replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":') // 无引号key加引号
         .replace(/'/g, '"')                      // 单引号→双引号
       try {
-        parsed = JSON.parse(fixed)
-      } catch (e3) {
+        // 修复：将 value 中的 JSON 数组手动包裹
+        // 例如 "blocks": ["x": ...] → "blocks": [{"x": ...}]
+        fixed = fixed
+          .replace(/\[\s*"([a-zA-Z_]\w*)"\s*:/g, '[{"$1":')   // 数组内的无引号key对象修复
+          .replace(/([{,]\s*)([a-zA-Z_]\w*)\s*:/g, '$1"$2":')     // 无引号key加引号
+          .replace(/:\s*'([^']*)'/g, ': "$1"')                     // 单引号值→双引号
+          .replace(/,\s*([}\]])/g, '$1')                           // 尾部逗号
+          .replace(/:\s*(\d+\.\d+)\s*(,|\})/g, ': $1$2')          // 数字格式不变
+        try {
+          parsed = JSON.parse(fixed)
+        } catch (_e4) {
+          // 第三次：尝试 new Function（最后手段）
+          parsed = new Function(`return (${extracted})`)()
+        }
+      } catch (_fatal) {
         console.error('Kimi parse failed. Raw:', content)
         console.error('Extracted:', extracted)
         console.error('Fixed:', fixed)
