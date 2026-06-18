@@ -2,7 +2,7 @@
 // endpoint: https://api.moonshot.cn/v1/chat/completions
 // model: moonshot-v1-8k-vision-preview
 
-const KIMI_API_KEY = 'sk-Xfzmqy6VfneqVmp70Ix4DJ7l5Tfqqh4VyA3QFEh4eBbgBe2I'
+const KIMI_API_KEY = ''
 const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
 
 export interface VisionBlockResult {
