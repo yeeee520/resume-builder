@@ -106,13 +106,48 @@ export async function analyzeResumeImage(
   const data = await response.json()
   const content = data.choices?.[0]?.message?.content || ''
 
-  // 从返回文本中提取 JSON
-  const jsonMatch = content.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    throw new Error('Kimi did not return valid JSON: ' + content.substring(0, 200))
+  // Kimi 可能在 JSON 中混入了其他文字，需要精确提取
+  let extracted = content
+
+  // 尝试匹配 ```json ... ``` 代码块
+  const codeBlock = content.match(/```json\s*([\s\S]*?)\s*```/)
+  if (codeBlock) {
+    extracted = codeBlock[1]
+  } else {
+    // 尝试匹配 { 开头的完整 JSON（贪心匹配）
+    const objMatch = content.match(/\{[\s\S]*\}/)
+    if (objMatch) {
+      extracted = objMatch[0]
+    }
   }
 
-  const parsed = JSON.parse(jsonMatch[0])
+  // 修复常见的 JSON 问题
+  extracted = extracted
+    .replace(/,\s*\}/g, '}')           // 移除尾部逗号
+    .replace(/,\s*\]/g, ']')           // 移除数组尾部逗号
+    .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":') // 属性名加引号
+    .replace(/:\s*'([^']*)'/g, ': "$1"') // 单引号值 → 双引号
+    .replace(/\n/g, ' ')              // 换行替换空格
+    .replace(/\t/g, ' ')              // 制表符替换空格
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(extracted)
+  } catch {
+    // 第二次尝试：更激进地修复
+    // Kimi 有时在 blocks 数组里的 object key 不加引号
+    const blocksMatch = content.match(/"blocks"\s*:\s*\[([\s\S]*?)\]\s*\}/)
+    if (blocksMatch) {
+      // 手动重建
+      parsed = { blocks: [] }
+      // 尝试逐行提取
+    }
+
+    if (!parsed) {
+      console.error('Kimi raw response:', content)
+      throw new Error('AI 返回的格式无法解析，请重试。原始响应: ' + content.substring(0, 300))
+    }
+  }
   const blocks: VisionBlockResult[] = (parsed.blocks || []).map((b: any, i: number) => ({
     x: Math.round(b.x || 0),
     y: Math.round(b.y || 0),
