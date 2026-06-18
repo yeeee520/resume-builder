@@ -35,6 +35,7 @@ function SortableBlock({ block }: { block: Block }) {
     transition,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 50 : undefined,
+    boxShadow: isSelected ? 'var(--shadow-sm)' : undefined,
   }
 
   return (
@@ -45,8 +46,8 @@ function SortableBlock({ block }: { block: Block }) {
       {...listeners}
       className={`group relative transition-all duration-150 cursor-grab active:cursor-grabbing rounded-sm border-2 mb-1 ${
         isSelected
-          ? 'border-[var(--accent)] shadow-sm'
-          : 'border-transparent hover:border-neutral-200'
+          ? 'border-[var(--accent)]'
+          : 'border-transparent'
       }`}
       onClick={(e) => {
         e.stopPropagation()
@@ -123,7 +124,7 @@ function BlockDisplay({ block }: { block: Block }) {
       const sizeStyle = { width: block.size, height: block.size }
       const br = block.shape === 'circle' ? '50%' : '12px'
       return !block.imageDataUrl
-        ? <div className="bg-neutral-100 flex items-center justify-center border-2 border-dashed border-neutral-200" style={{ ...sizeStyle, borderRadius: br }}><span className="text-3xl opacity-30">📷</span></div>
+        ? <div style={{ backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #e5e5e5', ...sizeStyle, borderRadius: br }}><span style={{ opacity: 0.3, fontSize: '1.875rem', lineHeight: '2.25rem' }}>📷</span></div>
         : <img src={block.imageDataUrl} alt="头像" style={{ ...sizeStyle, borderRadius: br, objectFit: 'cover' }} />
     }
     case 'tag-group':
@@ -218,11 +219,11 @@ export function Canvas() {
             <div className="flex flex-col p-6 h-full overflow-y-auto" style={{ fontSize: 'inherit' }}>
               {blocks.map(block => <SortableBlock key={block.id} block={block} />)}
               {blocks.length === 0 && (
-                <div className="flex-1 flex items-center justify-center text-neutral-300">
+                <div className="flex-1 flex items-center justify-center" style={{ color: '#d1d5db' }}>
                   <div className="text-center">
                     <div className="text-6xl mb-4">📄</div>
-                    <p className="text-lg text-neutral-400">从左侧拖入拼图块开始制作简历</p>
-                    <p className="text-sm mt-2 text-neutral-300">或点击"导入 PDF/Word"从现有简历提取内容</p>
+                    <p className="text-lg" style={{ color: '#9ca3af' }}>从左侧拖入拼图块开始制作简历</p>
+                    <p className="text-sm mt-2" style={{ color: '#d1d5db' }}>或点击"导入 PDF/Word"从现有简历提取内容</p>
                   </div>
                 </div>
               )}

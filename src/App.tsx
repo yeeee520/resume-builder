@@ -113,7 +113,35 @@ export default function App() {
       }
 
       toast('info', '正在生成 PDF...')
-      const result = await html2canvas(canvas, { scale: 2, useCORS: true, backgroundColor: '#ffffff' as unknown as undefined })
+      // 导出前将 canvas 中所有 oklch 色值临时替换为计算后的 rgb
+      const allEls = canvas.querySelectorAll('*')
+      const originalColors: Array<{ el: HTMLElement; style: string }> = []
+      allEls.forEach((el) => {
+        if (!(el instanceof HTMLElement)) return
+        const orig = el.style.color || ''
+        originalColors.push({ el, style: orig })
+      })
+      const result = await html2canvas(canvas, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          // 遍历克隆文档，将 oklch 色值全部替换
+          clonedDoc.querySelectorAll('*').forEach((el: any) => {
+            if (!el.style) return
+            // Fix color
+            if (el.style.color && el.style.color.includes('oklch')) {
+              el.style.color = el.style.color.replace(/oklch\([^)]+\)/g, '#1a1a1a')
+            }
+            if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) {
+              el.style.backgroundColor = el.style.backgroundColor.replace(/oklch\([^)]+\)/g, '#ffffff')
+            }
+            if (el.style.borderColor && el.style.borderColor.includes('oklch')) {
+              el.style.borderColor = el.style.borderColor.replace(/oklch\([^)]+\)/g, '#d1d5db')
+            }
+          })
+        },
+      })
       const imgData = result.toDataURL('image/png')
       const pdf = new jsPDF('p', 'mm', 'a4')
       const pdfWidth = pdf.internal.pageSize.getWidth()
