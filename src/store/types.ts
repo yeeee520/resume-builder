@@ -11,11 +11,31 @@ export type BlockType =
   | 'contact'
   | 'spacer'
 
+export type LayoutMode = 'flow' | 'free'
+
 export interface BlockBase {
   id: string
   type: BlockType
   order: number
+  // v2 自由布局属性
+  x: number        // 画布坐标 x (px)
+  y: number        // 画布坐标 y (px)
+  width: number    // 宽度 (px)，0 表示 auto
+  height: number   // 高度 (px)，0 表示 auto
+  zIndex: number   // 层级
 }
+
+export interface Resume {
+  id: string
+  name: string
+  createdAt: number
+  updatedAt: number
+  blocks: Block[]
+  themeId: string
+  layoutMode: LayoutMode  // v2: 布局模式
+}
+
+// (Resume 定义见下方)
 
 // 标题块
 export interface TitleBlock extends BlockBase {
@@ -162,6 +182,8 @@ export interface Resume {
   updatedAt: number
   blocks: Block[]
   themeId: string
+  layoutMode: LayoutMode  // v2
+}
 }
 
 // ==================== 主题 ====================

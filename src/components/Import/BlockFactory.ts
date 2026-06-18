@@ -13,7 +13,7 @@ export function createBlocks(classifications: ClassificationResult[]): Block[] {
   return classifications
     .filter(c => c.blockType !== 'unknown')
     .map((c, index): Block | null => {
-      const base = { id: nanoid(8), order: index } as const
+      const base = { id: nanoid(8), order: index, x: 0, y: 0, width: 0, height: 0, zIndex: index } as const
 
       switch (c.blockType) {
         case 'title':
