@@ -16,7 +16,8 @@ import {
 
 function createDefaultBlock(type: BlockType, order: number): Block {
   const id = nanoid(8)
-  const base = { id, type, order } as const
+  // v2 自由布局默认属性
+  const base = { id, type, order, x: 0, y: 0, width: 0, height: 0, zIndex: order } as const
 
   switch (type) {
     case 'title':
@@ -121,6 +122,7 @@ export const useResumeStore = create<ResumeSlice>()(
             updatedAt: now,
             blocks: [],
             themeId: 'modern-blue',
+            layoutMode: 'free' as const,
           })
           if (!state.currentResumeId) {
             state.currentResumeId = id

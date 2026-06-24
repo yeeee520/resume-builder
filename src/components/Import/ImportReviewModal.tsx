@@ -62,7 +62,7 @@ export function ImportReviewModal() {
       open={true}
       onClose={reset}
       title={`📥 导入预览 — ${fileName}`}
-      width="800px"
+      width="90vw"
       footer={
         <>
           <Button variant="ghost" onClick={reset}>取消</Button>
@@ -102,10 +102,15 @@ export function ImportReviewModal() {
                 <tr key={i} className="border-b border-neutral-100 hover:bg-[var(--surface-hover)] transition-colors">
                   <td className="py-2 px-2 text-neutral-400">{i + 1}</td>
                   <td className="py-2 px-2">
-                    <div className="max-w-xs truncate text-[var(--editor-text)]">{c.label}</div>
+                    <div style={{ maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="text-[var(--editor-text)]">{c.label}</div>
                     <div className="text-[11px] text-neutral-400">
-                      {c.ruleName} · {c.confidence === 'high' ? '🟢' : c.confidence === 'medium' ? '🟡' : '🟠'} {c.confidence}
+                      {c.ruleName === 'kimi-vision' ? '🤖 AI识别' : c.ruleName} · {c.confidence === 'high' ? '🟢' : c.confidence === 'medium' ? '🟡' : '🟠'} {c.confidence}
                     </div>
+                    {c.data?.x !== undefined && (
+                      <div className="text-[10px] text-neutral-300">
+                        位置: ({c.data.x as number}, {c.data.y as number}) · {c.data.width as number}×{c.data.height as number}px
+                      </div>
+                    )}
                   </td>
                   <td className="py-2 px-2">
                     <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${
@@ -113,7 +118,16 @@ export function ImportReviewModal() {
                       c.confidence === 'medium' ? 'bg-amber-50 text-amber-600' :
                       'bg-neutral-50 text-neutral-500'
                     }`}>
-                      {c.ruleName === 'name' ? '姓名' :
+                      {c.ruleName === 'kimi-vision' ? (
+                        c.blockType === 'title' ? 'AI·标题' :
+                        c.blockType === 'paragraph' ? 'AI·正文' :
+                        c.blockType === 'timeline' ? 'AI·时间段' :
+                        c.blockType === 'skill-bar' ? 'AI·技能条' :
+                        c.blockType === 'tag-group' ? 'AI·标签组' :
+                        c.blockType === 'contact' ? 'AI·联系方式' :
+                        c.blockType === 'avatar' ? 'AI·头像' : 'AI·正文'
+                      ) :
+                      c.ruleName === 'name' ? '姓名' :
                        c.ruleName === 'contact' ? '联系方式' :
                        c.ruleName === 'timeline' ? '经历' :
                        c.ruleName === 'heading' ? '章节标题' :

@@ -13,7 +13,21 @@ export function createBlocks(classifications: ClassificationResult[]): Block[] {
   return classifications
     .filter(c => c.blockType !== 'unknown')
     .map((c, index): Block | null => {
-      const base = { id: nanoid(8), order: index } as const
+      // v2: 读取 AI 返回的坐标数据
+      const x = (c.data.x as number) ?? 0
+      const y = (c.data.y as number) ?? 0
+      const w = (c.data.width as number) ?? 0
+      const h = (c.data.height as number) ?? 0
+
+      const base = {
+        id: nanoid(8),
+        order: index,
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(w),
+        height: Math.round(h),
+        zIndex: index,
+      } as const
 
       switch (c.blockType) {
         case 'title':

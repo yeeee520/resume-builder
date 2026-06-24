@@ -113,33 +113,44 @@ export default function App() {
       }
 
       toast('info', '正在生成 PDF...')
-      // 导出前将 canvas 中所有 oklch 色值临时替换为计算后的 rgb
-      const allEls = canvas.querySelectorAll('*')
-      const originalColors: Array<{ el: HTMLElement; style: string }> = []
-      allEls.forEach((el) => {
-        if (!(el instanceof HTMLElement)) return
-        const orig = el.style.color || ''
-        originalColors.push({ el, style: orig })
-      })
+      // 导出前预先将 canvas 中所有 oklch 色值替换为计算后的 rgb
+      const allStyles = window.getComputedStyle(canvas)
+      const computedBg = allStyles.getPropertyValue('--canvas-bg')?.trim() || '#ffffff'
+
+      // 用 setTimeout 确保 toast 渲染后再截图
+      // 关键修复：替换所有 oklch() 为固定 hex 色值
       const result = await html2canvas(canvas, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: computedBg,
         onclone: (clonedDoc) => {
-          // 遍历克隆文档，将 oklch 色值全部替换
-          clonedDoc.querySelectorAll('*').forEach((el: any) => {
-            if (!el.style) return
-            // Fix color
-            if (el.style.color && el.style.color.includes('oklch')) {
-              el.style.color = el.style.color.replace(/oklch\([^)]+\)/g, '#1a1a1a')
+          // 深度遍历克隆文档，替换所有 oklch 颜色
+          const walker = (el: Element) => {
+            if (el instanceof HTMLElement || el instanceof SVGElement) {
+              const style = (el as HTMLElement).style
+              if (!style) return
+              // 遍历所有样式属性
+              for (let i = 0; i < style.length; i++) {
+                const prop = style[i]
+                const val = style.getPropertyValue(prop)
+                if (val && typeof val === 'string' && val.includes('oklch')) {
+                  // 替换 oklch 值为 '#1a1a1a' (黑色) 或 '#ffffff'(白色)
+                  // 简单策略：非背景色都换黑色
+                  if (prop.includes('background') || prop.includes('bg')) {
+                    style.setProperty(prop, val.replace(/oklch\([^)]+\)/g, '#ffffff'), 'important')
+                  } else if (prop.includes('border')) {
+                    style.setProperty(prop, val.replace(/oklch\([^)]+\)/g, '#d1d5db'), 'important')
+                  } else {
+                    style.setProperty(prop, val.replace(/oklch\([^)]+\)/g, '#1a1a1a'), 'important')
+                  }
+                }
+              }
             }
-            if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) {
-              el.style.backgroundColor = el.style.backgroundColor.replace(/oklch\([^)]+\)/g, '#ffffff')
+            for (let i = 0; i < el.children.length; i++) {
+              if (el.children[i]) walker(el.children[i])
             }
-            if (el.style.borderColor && el.style.borderColor.includes('oklch')) {
-              el.style.borderColor = el.style.borderColor.replace(/oklch\([^)]+\)/g, '#d1d5db')
-            }
-          })
+          }
+          walker(clonedDoc.body)
         },
       })
       const imgData = result.toDataURL('image/png')
